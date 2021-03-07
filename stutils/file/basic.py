@@ -15,7 +15,7 @@ Dir = Union[str, Path]
 
 
 @contextmanager
-def dive_dir(directory: Dir) -> None:
+def dive_dir(directory: Dir):
     """方便使用with语句将目录加入当前路径"""
     cwd = os.getcwd()
     try:
@@ -36,7 +36,8 @@ def print_tree(directory: Dir, depth: int = -1,
                only_directories: bool = False,
                limit: int = 1000,
                skip_empty: bool = False,
-               pattern: Union[Callable[[str], bool], str] = None) -> None:
+               dir_pattern: Union[Callable[[str], bool], str] = None,
+               file_pattern: Union[Callable[[str], bool], str] = None):
     """打印目录树
 
     :param directory: 目标目录
@@ -44,14 +45,16 @@ def print_tree(directory: Dir, depth: int = -1,
     :param only_directories: 是否仅列出文件夹，默认否
     :param limit: 最大文件数量
     :param skip_empty: 是否跳过空目录
-    :param pattern: 字符串函数或者通配符匹配文件名，
+    :param dir_pattern: 字符串函数或者通配符匹配文件夹
+    :param file_pattern: 字符串函数或者通配符匹配文件名，
                     只在only_directories=False时有效
     """
     start = '│──'
     space = '   '
     branch = '│  '
     last = '└──'
-    match_func = _match_func(pattern)
+    match_file = _match_func(file_pattern)
+    match_dir = _match_func(dir_pattern)
     print(directory)
     directory = Path(directory)
     n_directories, n_files = 0, 0
@@ -62,20 +65,14 @@ def print_tree(directory: Dir, depth: int = -1,
             return
         contents = []
         try:
-            if only_directories:
-                for d in path.iterdir():
-                    if d.is_dir():
-                        if skip_empty and is_empty_dir(d):
-                            continue
+            for d in path.iterdir():
+                if d.is_file():
+                    if not only_directories and match_file(d.name):
                         contents.append(d)
-            else:
-                for d in path.iterdir():
-                    if d.is_file():
-                        if match_func(d.name):
-                            contents.append(d)
-                    else:
-                        if skip_empty and is_empty_dir(d):
-                            continue
+                else:
+                    if skip_empty and is_empty_dir(d):
+                        continue
+                    if match_dir(d):
                         contents.append(d)
         except PermissionError as e:
             print(e)
@@ -90,14 +87,13 @@ def print_tree(directory: Dir, depth: int = -1,
             elif not only_directories:
                 yield prefix + stem + content.name
                 n_files += 1
-
     try:
         iterator = _print_tree(directory, level=depth)
         for line in islice(iterator, limit):
             print(line)
         if next(iterator, None):
-            print(f'... length_limit, {limit}, reached, counted:')
-        print(f'\n{n_directories} directories'
+            print(f'... length_limit, {limit}, reached')
+        print(f'counted:{n_directories} directories'
               + (f', {n_files} files' if n_files else ''))
     except RecursionError:
         print("The directory is too deep to show.")
@@ -145,7 +141,7 @@ def is_empty_dir(directory: Dir) -> bool:
     return not os.listdir(directory)
 
 
-def del_empty_dirs(directory: Dir) -> None:
+def del_empty_dirs(directory: Dir):
     """批量删除空目录（包括子目录）"""
     n_empty_dirs = 0
     for dir_path, dir_names, _ in os.walk(directory, topdown=False):
@@ -158,7 +154,7 @@ def del_empty_dirs(directory: Dir) -> None:
     print(f'{n_empty_dirs} directories removed.')
 
 
-def move_merge_dir(src_dir: Dir, dst_dir: Dir) -> None:
+def move_merge_dir(src_dir: Dir, dst_dir: Dir):
     """移动目录到目标目录下，目标目录下如存在同名目录则尝试合并"""
     src_dir, dst_dir = Path(src_dir), Path(dst_dir)
     try:
@@ -169,7 +165,7 @@ def move_merge_dir(src_dir: Dir, dst_dir: Dir) -> None:
         src_dir.rmdir()
 
 
-def merge_same_parent(directory: Dir) -> None:
+def merge_same_parent(directory: Dir):
     """合并名称相同且只包含当前目录的父目录"""
     for dir_path, dir_names, files in os.walk(directory, topdown=False):
         if len(dir_names) == 1 and len(files) == 0:
@@ -183,7 +179,7 @@ def merge_same_parent(directory: Dir) -> None:
 
 
 def del_files(directory: Dir,
-              pattern: Union[Callable[[str], bool], str] = None) -> None:
+              pattern: Union[Callable[[str], bool], str] = None):
     """根据条件删除目录中（包括子目录）的指定文件
 
     :param directory: 目标目录路径
@@ -202,7 +198,7 @@ def del_files(directory: Dir,
 
 
 def rename_files(directory: Dir,
-                 str_func: Callable[[str], str] = None) -> None:
+                 str_func: Callable[[str], str] = None):
     """对目录中（包括子目录）的文件进行重命名
 
     :param directory: 目标目录路径
@@ -218,7 +214,7 @@ def rename_files(directory: Dir,
     print(f'{n_renamed_files} files renamed.')
 
 
-def copy_file(src: Dir, dst: Dir) -> None:
+def copy_file(src: Dir, dst: Dir):
     """仅复制文件，不复制权限、元信息"""
     try:
         shutil.copyfile(src, dst)
@@ -226,7 +222,7 @@ def copy_file(src: Dir, dst: Dir) -> None:
         print("copy failed! {}".format(e))
 
 
-def copy_files(src: Dir, dst_dir: Dir, name: str = None) -> None:
+def copy_files(src: Dir, dst_dir: Dir, name: str = None):
     """拷贝文件到指定目录（包括子目录）
 
     :param src: 源文件路径

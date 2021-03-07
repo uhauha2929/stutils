@@ -31,6 +31,24 @@ class Trie(object):
             node = node.children[char]
         node.end += 1
 
+    def remove(self, keyword: str) -> bool:
+        """删除关键字，返回是否成功"""
+        def remove(node, i):
+            if i == len(keyword):
+                return True
+            if keyword[i] in node.children:
+                child = node.children[keyword[i]]
+                if remove(child, i + 1):
+                    if i == len(keyword) - 1:
+                        if child.end == 0:
+                            return False
+                        if child.end >= 1:
+                            child.end -= 1
+                    del child  # 如果有孩子则不会删除
+                    return True
+            return False
+        return remove(self.root, 0)
+
     def contains(self, keyword: str) -> bool:
         """是否包含该关键词"""
         node = self.root
@@ -53,15 +71,15 @@ class Trie(object):
         """返回所有关键词列表"""
         keywords = []
 
-        def pre_order(current_node, word, words):
+        def pre_order(current_node, word):
             word.append(current_node.name)
             if current_node.end > 0:
-                words.append(''.join(word))
+                keywords.append(''.join(word))
             for node in current_node.children.values():
-                pre_order(node, word, words)
+                pre_order(node, word)
             word.pop()
 
-        pre_order(self.root, [], keywords)
+        pre_order(self.root, [])
         return keywords
 
 
@@ -77,7 +95,7 @@ class AhoCorasick(object):
 
     def __init__(self, keywords: Iterable[str] = None):
         """AC自动机"""
-        self.root = self.Node("root")
+        self.root = self.Node('')
         self.finalized = False
         if keywords is not None:
             for keyword in set(keywords):
@@ -93,6 +111,27 @@ class AhoCorasick(object):
             node = node.children[char]
         node.exist.append(len(keyword))
 
+    def remove(self, keyword: str) -> bool:
+        """删除关键字，返回是否成功"""
+        if self.finalized:
+            raise RuntimeError('The tree has been finalized!')
+
+        def remove(node, i):
+            if i == len(keyword):
+                return True
+            if keyword[i] in node.children:
+                child = node.children[keyword[i]]
+                if remove(child, i + 1):
+                    if i == len(keyword) - 1:
+                        if not child.exist:
+                            return False
+                        child.exist.clear()
+                    del child  # 如果有孩子，则不会删除
+                    return True
+            return False
+
+        return remove(self.root, 0)
+
     def contains(self, keyword: str) -> bool:
         node = self.root
         for char in keyword:
@@ -100,6 +139,21 @@ class AhoCorasick(object):
                 return False
             node = node.children[char]
         return bool(node.exist)
+
+    def list(self):
+        """返回所有关键词列表"""
+        keywords = []
+
+        def pre_order(current_node, word):
+            word.append(current_node.name)
+            if current_node.exist:
+                keywords.append(''.join(word))
+            for node in current_node.children.values():
+                pre_order(node, word)
+            word.pop()
+
+        pre_order(self.root, [])
+        return keywords
 
     def finalize(self):
         """构建fail指针"""

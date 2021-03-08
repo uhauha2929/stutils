@@ -33,6 +33,8 @@ def longest_palindrome(text: str, sep: str = '#') -> str:
         # 如果还有超出最右半径的部分则继续从边界处（包含边界）左右拓展
         while ext_string[i + p[i] + 1] == ext_string[i - p[i] - 1]:
             p[i] += 1
+            if i + p[i] + 1 == n:
+                break
         # 如果此时的回文半径大于最右半径，则更新之
         right = i + p[i]
         if right > right_most:

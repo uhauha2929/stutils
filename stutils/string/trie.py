@@ -67,7 +67,7 @@ class Trie(object):
             node = node.children[char]
         return node.end
 
-    def list(self):
+    def list(self, lexical: bool = False):
         """返回所有关键词列表"""
         keywords = []
 
@@ -75,7 +75,10 @@ class Trie(object):
             word.append(current_node.name)
             if current_node.end > 0:
                 keywords.append(''.join(word))
-            for node in current_node.children.values():
+            children = current_node.children.items()
+            if lexical:
+                children = sorted(children, key=lambda x: x[0])
+            for _, node in children:
                 pre_order(node, word)
             word.pop()
 
@@ -89,7 +92,7 @@ class AhoCorasick(object):
 
         def __init__(self, name: str):
             self.name = name  # 节点代表的字符
-            self.children = OrderedDict()  # 节点的孩子，键为字符，值为节点对象
+            self.children = {}  # 节点的孩子，键为字符，值为节点对象
             self.fail = None  # fail指针，root的指针为None
             self.exist = []  # 如果节点为单词结尾，存放单词的长度
 
@@ -140,7 +143,7 @@ class AhoCorasick(object):
             node = node.children[char]
         return bool(node.exist)
 
-    def list(self):
+    def list(self, lexical: bool = False):
         """返回所有关键词列表"""
         keywords = []
 
@@ -148,7 +151,10 @@ class AhoCorasick(object):
             word.append(current_node.name)
             if current_node.exist:
                 keywords.append(''.join(word))
-            for node in current_node.children.values():
+            children = current_node.children.items()
+            if lexical:
+                children = sorted(children, key=lambda x: x[0])
+            for _, node in children:
                 pre_order(node, word)
             word.pop()
 
@@ -220,7 +226,7 @@ class SuffixTree(object):
             self.end = end          # 叶子节点的end默认为-1
             self.suffix_index = -1  # 叶子节点所代表的后缀的起始位置
             self.suffix_link = None
-            self.children = OrderedDict()
+            self.children = {}
 
     def __init__(self, text: str = None, end_tag: str = '$'):
         if len(end_tag) > 1:
@@ -233,6 +239,7 @@ class SuffixTree(object):
         self.active_length: int = 0
         self.remainder: int = 0        # 剩余的要添加的后缀的个数
         self.text = None
+        self.has_suffix_index: bool = False
         if text is not None:
             self.build(text)
 
@@ -246,17 +253,17 @@ class SuffixTree(object):
         edge_end = node.end if node.end != -1 else self.leaf_end
         return self.text[node.start: edge_end + 1]
 
-    def set_suffix_index(self,
-                         node: Node = None,
-                         height: int = 0):
+    def set_suffix_index(self):
         """为叶子节点设置代表的后缀的起始位置"""
-        node = node or self.root
-        for child in node.children.values():
-            new_height = height + self.edge_length(child)
-            if child.end == -1:
-                child.suffix_index = len(self.text) - new_height
-            else:
-                self.set_suffix_index(child, new_height)
+        def dfs(node, height):
+            for child in node.children.values():
+                new_height = height + self.edge_length(child)
+                if child.end == -1:
+                    child.suffix_index = len(self.text) - new_height
+                else:
+                    dfs(child, new_height)
+        dfs(self.root, 0)
+        self.has_suffix_index = True
 
     def get_suffix_index(self, node: Node = None) -> List[int]:
         """返回某个节点下所有叶子节点的后缀的起始位置"""
@@ -329,8 +336,6 @@ class SuffixTree(object):
                     self.active_edge = i - self.remainder + 1
                 elif self.active_node is not self.root:
                     self.active_node = self.active_node.suffix_link or self.root
-
-        self.set_suffix_index()
 
     def print_tree(self, show_id=True, depth: int = -1, limit: int = 100):
         """打印后缀树的树形结构"""
@@ -444,6 +449,8 @@ class SuffixTree(object):
         """找出所有匹配的子串的位置"""
         if len(sub) == 0:
             return []
+        if not self.has_suffix_index:
+            self.set_suffix_index()
         node = self._get_matched_node(sub)
         return [] if node is None else self.get_suffix_index(node)
 
@@ -469,6 +476,24 @@ class SuffixTree(object):
         length, end = dfs(self.root, 0)
         return self.text[end - length + 1: end + 1]
 
+    def get_suffix_array(self):
+        """返回后缀数组"""
+        if not self.has_suffix_index:
+            self.set_suffix_index()
+        res = []
+
+        def dfs(node):
+            # 按字典序找出所有的后缀的起始位置
+            for _, child in sorted(node.children.items(),
+                                   key=lambda x: x[0]):
+                if child.end == -1:
+                    if child.suffix_index < self.leaf_end:
+                        res.append(child.suffix_index)
+                else:
+                    dfs(child)
+        dfs(self.root)
+        return res
+
     @classmethod
     def longest_common_substring(cls, s1: str, s2: str,
                                  sep_tag: str = '#',
@@ -476,9 +501,49 @@ class SuffixTree(object):
         """返回两个字符串的任意一个最长公共子串
 
         连接Text1+#+Text2+$形成新的字符串并构造后缀树
-        找到最深的非叶节点，且该节点的叶节点既有#也有$
+        找到最深的非叶节点，且该节点的叶节点中既有唯一的$，也有#$同时出现
+        注意：递归太深栈会溢出
         """
-        raise NotImplementedError
+        st = cls(s1 + sep_tag + s2, end_tag)
+
+        max_len = 0
+        max_end = 0
+
+        def dfs(node, height):
+            nonlocal max_len, max_end
+            if node.end == -1:
+                # 设置has_sep属性，表明叶子节点是否包含连接字符
+                if not hasattr(node, 'has_sep'):
+                    node.has_sep = False
+                    if sep_tag in st.edge_name(node):
+                        node.has_sep = True
+                        return 1
+                else:
+                    # 直接返回避免重复查找
+                    return 1 if node.has_sep else 0
+                return 0
+            else:
+                has_sep = has_end = False
+                for child in node.children.values():
+                    val = dfs(child, height + st.edge_length(child))
+                    if val == 0 or val == 2:
+                        has_end = True
+                    elif val == 1 or val == 2:
+                        has_sep = True
+                # 如果该内部节点同时包含两种叶子节点，记录最深高度和末尾位置
+                if has_sep and has_end:
+                    if height > max_len:
+                        max_len = height
+                        max_end = node.end
+                    return 2
+                if has_sep:
+                    return 1
+                if has_end:
+                    return 0
+                return -1
+
+        dfs(st.root, 0)
+        return st.text[max_end - max_len + 1: max_end + 1]
 
     @classmethod
     def longest_palindrome(cls, s: str,

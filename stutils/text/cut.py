@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-# @Author  : uhauha2929
-# @Email   : ck143302@gmail.com
 __all__ = ['load_words_by_freq', 'cut_into_words']
 
 from math import log
@@ -47,7 +45,7 @@ def get_losses(words: List[str]) -> Dict[str, float]:
     return loss_dict
 
 
-# https://stackoverflow.com/questions/8870261/how-to-split-text-without-spaces-into-list-of-words/11642687#11642687
+# https://stackoverflow.com/questions/8870261/how-to-split-text-without-spaces-into-list-of-words
 def cut_into_words(text: str, word_freq_file: str = None) -> List[str]:
     """在没有空格的英文句子切分单词
 

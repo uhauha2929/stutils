@@ -28,7 +28,7 @@ def min_edit_dist(word1: str, word2: str) -> int:
     return dp[n]
 
 
-def lcs_length(s1: str, s2: str) -> int:
+def longest_common_subsequence_length(s1: str, s2: str) -> int:
     """返回最长公共子序列的长度"""
     m = len(s1)
     n = len(s2)
@@ -44,17 +44,21 @@ def lcs_length(s1: str, s2: str) -> int:
     return c[m][n]
 
 
-def longest_common_substring(s1: str, s2: str) -> int:
-    """返回最长公共子串的长度"""
+def longest_common_substring_length(s1: str, s2: str) -> int:
+    """返回最长公共子串的长度
+
+    时间复杂度O(mn)，空间复杂度O(min(m,n))
+    """
     m, n = len(s1), len(s2)
-    dp = [[0 for _ in range(m + 1)] for _ in range(n + 1)]
+    dp = [[0 for _ in range(m + 1)] for _ in range(2)]
     res = 0
     for i in range(1, n + 1):
         for j in range(1, m + 1):
             if s2[i - 1] == s1[j - 1]:
-                dp[i][j] = dp[i - 1][j - 1] + 1
-                if dp[i][j] > res:
-                    res = dp[i][j]
+                k = i % 2
+                dp[k][j] = dp[(i - 1) % 2][j - 1] + 1
+                if dp[k][j] > res:
+                    res = dp[k][j]
     return res
 
 

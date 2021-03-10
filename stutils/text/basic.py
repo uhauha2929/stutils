@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Union, List, Tuple, Set, Callable
 import os
 import gzip
+import string
 
 
 MODULE_PATH = os.path.dirname(__file__)
@@ -48,36 +49,36 @@ def get_tokenized_words(docs: List[str],
     return texts
 
 
-def ngrams(string: Union[str, List[str]], n: int = 2):
+def ngrams(text: Union[str, List[str]], n: int = 2):
     """返回一个字符串所有的ngrams集合"""
     if n <= 0:
         raise ValueError('Invalid length.')
-    if len(string) < n:
+    if len(text) < n:
         warnings.warn(f'The string length must be greater than {n - 1}.')
         return []
-    return [tuple(string[i: i + n]) for i in range(len(string) - 1)]
+    return [tuple(text[i: i + n]) for i in range(len(text) - 1)]
 
 
-def bigrams(string: Union[str, List[str]]) -> List[Tuple[str, str]]:
+def bigrams(text: Union[str, List[str]]) -> List[Tuple[str, str]]:
     """返回一个字符串所有bigram集合
-    :param string: 分词后的集合，否则以字符为单位
+    :param text: 分词后的集合，否则以字符为单位
     :return: bigram元组集合
     """
-    if len(string) < 2:
+    if len(text) < 2:
         warnings.warn('The string length must be greater than 1.')
         return []
-    return [tuple(string[i: i + 2]) for i in range(len(string) - 1)]
+    return [tuple(text[i: i + 2]) for i in range(len(text) - 1)]
 
 
-def trigrams(string: Union[str, List[str]]) -> List[Tuple[str, str, str]]:
+def trigrams(text: Union[str, List[str]]) -> List[Tuple[str, str, str]]:
     """返回一个字符串所有trigram集合
-    :param string: 分词后的集合，否则以字符为单位
+    :param text: 分词后的集合，否则以字符为单位
     :return: trigram元组集合
     """
-    if len(string) < 3:
+    if len(text) < 3:
         warnings.warn('The string length must be greater than 2.')
         return []
-    return [tuple(string[i: i + 3]) for i in range(len(string) - 2)]
+    return [tuple(text[i: i + 3]) for i in range(len(text) - 2)]
 
 
 def split_into_sentences(text: str, lang='en') -> List[str]:
@@ -107,3 +108,26 @@ def split_into_sentences(text: str, lang='en') -> List[str]:
         return re.split("<stop>", text)
     else:
         raise ValueError('Unsupported language.')
+
+
+def remove_extra_spaces(text: str):
+    """去除英文句子中多余的空格"""
+    n = len(text)
+    chars = []
+    space_found = False
+    for i in range(n):
+        if text[i] != ' ':
+            if space_found:
+                if text[i] not in ',.?':
+                    chars.append(' ')
+                space_found = False
+            chars.append(text[i])
+        elif text[i - 1] != ' ':
+            space_found = True
+    return ''.join(chars)
+
+
+def remove_punctuation(text: str):
+    """去除句子中的标点符号"""
+    translator = str.maketrans('', '', string.punctuation)
+    return text.translate(translator)

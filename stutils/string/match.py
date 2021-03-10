@@ -3,6 +3,7 @@
 # @Email   : ck143302@gmail.com
 import warnings
 from typing import List
+from .trie import AhoCorasick  # 引入AC自动机
 
 
 def brute_force_search(text: str, pattern: str) -> int:

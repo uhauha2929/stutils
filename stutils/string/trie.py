@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Author  : uhauha2929
 # @Email   : ck143302@gmail.com
+import heapq
 from collections import OrderedDict
 from itertools import islice
 from queue import Queue
@@ -84,6 +85,42 @@ class Trie(object):
 
         pre_order(self.root, [])
         return keywords
+
+    def suggestions(self, key, n: int = 5) -> List[str]:
+        """自动补全，根据前缀返回可能的关键词"""
+        if n <= 0:
+            raise ValueError('The number of suggested words '
+                             'must be greater than 0.')
+        node = self.root
+        not_found = False
+        chars = []
+        for c in key:
+            if c not in node.children:
+                not_found = True
+                break
+            chars.append(c)
+            node = node.children[c]
+
+        if not_found:
+            return []
+
+        if node.end > 0:
+            return [key]
+
+        words = []
+
+        def dfs(_node):
+            if _node.end > 0:
+                words.append((''.join(chars), _node.end))
+            for char, child in _node.children.items():
+                chars.append(char)
+                dfs(child)
+                chars.pop()
+
+        dfs(node)
+        words = heapq.nlargest(n, words, key=lambda x: x[1])
+        words, _ = zip(*words)
+        return list(words)
 
 
 class AhoCorasick(object):
@@ -505,30 +542,19 @@ class SuffixTree(object):
         注意：递归太深栈会溢出
         """
         st = cls(s1 + sep_tag + s2, end_tag)
-
-        max_len = 0
-        max_end = 0
+        max_len, max_end = 0, 0
 
         def dfs(node, height):
             nonlocal max_len, max_end
             if node.end == -1:
-                # 设置has_sep属性，表明叶子节点是否包含连接字符
-                if not hasattr(node, 'has_sep'):
-                    node.has_sep = False
-                    if sep_tag in st.edge_name(node):
-                        node.has_sep = True
-                        return 1
-                else:
-                    # 直接返回避免重复查找
-                    return 1 if node.has_sep else 0
-                return 0
+                return int(sep_tag in st.edge_name(node))
             else:
                 has_sep = has_end = False
                 for child in node.children.values():
                     val = dfs(child, height + st.edge_length(child))
                     if val == 0 or val == 2:
                         has_end = True
-                    elif val == 1 or val == 2:
+                    if val == 1 or val == 2:
                         has_sep = True
                 # 如果该内部节点同时包含两种叶子节点，记录最深高度和末尾位置
                 if has_sep and has_end:

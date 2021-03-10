@@ -6,3 +6,7 @@ from . import metric
 from . import palindrome
 from . import trie
 from . import validation
+from . import combination
+from . import prefix
+from . import suffix
+from . import anagram

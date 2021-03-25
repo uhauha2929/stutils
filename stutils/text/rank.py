@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
 # @Author  : uhauha2929
 # @Email   : ck143302@gmail.com
-__all__ = ['word_rank', 'text_rank']
-
 import heapq
 from math import log
 from typing import List, Union, Callable, Tuple
-from .basic import ngrams, get_tokenized_words
+from .common import ngrams, get_tokenized_words
 
 
 def word_rank(doc: Union[List[str], str],

@@ -1,5 +1,3 @@
-from . import basic
-from . import cut
+from .common import *
 from . import rank
 from . import tfidf
-

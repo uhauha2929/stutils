@@ -5,7 +5,7 @@ import math
 import warnings
 from typing import List, Callable, Dict
 
-from .basic import get_tokenized_words
+from .common import get_tokenized_words
 
 
 def get_idf(texts: List[List[str]]) -> Dict[str, float]:

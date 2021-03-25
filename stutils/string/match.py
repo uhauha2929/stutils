@@ -2,11 +2,11 @@
 # @Author  : uhauha2929
 # @Email   : ck143302@gmail.com
 import warnings
-from typing import List
-from .trie import AhoCorasick  # 引入AC自动机
+from queue import Queue
+from typing import List, Iterable, Dict
 
 
-def brute_force_search(text: str, pattern: str) -> int:
+def brute_search(text: str, pattern: str) -> int:
     """暴力匹配
 
     时间复杂度：O(m*n)，空间复杂度：O(1)
@@ -151,3 +151,137 @@ def z_search(text: str, pattern: str, sep: str = '$') -> List[int]:
 
     z_arr = z_array(pattern + sep + text)
     return [j - m - 1 for j in range(m, len(z_arr)) if z_arr[j] == m]
+
+
+class AhoCorasick(object):
+    """AC自动机"""
+
+    class Node(object):
+
+        def __init__(self, name: str):
+            self.name = name  # 节点代表的字符
+            self.children = {}  # 节点的孩子，键为字符，值为节点对象
+            self.fail = None  # fail指针，root的指针为None
+            self.exist = []  # 如果节点为单词结尾，存放单词的长度
+
+    def __init__(self, keywords: Iterable[str] = None):
+        self.root = self.Node('')
+        self.finalized = False
+        if keywords is not None:
+            for keyword in set(keywords):
+                self.add(keyword)
+
+    def add(self, keyword: str):
+        """添加关键词"""
+        if self.finalized:
+            raise RuntimeError('The tree has been finalized!')
+        node = self.root
+        for char in keyword:
+            if char not in node.children:
+                node.children[char] = self.Node(char)
+            node = node.children[char]
+        node.exist.append(len(keyword))
+
+    def remove(self, keyword: str) -> bool:
+        """删除关键字，返回是否成功"""
+        if self.finalized:
+            raise RuntimeError('The tree has been finalized!')
+
+        def remove(node, i):
+            if i == len(keyword):
+                return True
+            if keyword[i] in node.children:
+                child = node.children[keyword[i]]
+                if remove(child, i + 1):
+                    if i == len(keyword) - 1:
+                        if not child.exist:
+                            return False
+                        child.exist.clear()
+                    del child  # 如果有孩子，则不会删除
+                    return True
+            return False
+
+        return remove(self.root, 0)
+
+    def contains(self, keyword: str) -> bool:
+        """返回是否包含某个关键词"""
+        node = self.root
+        for char in keyword:
+            if char not in node.children:
+                return False
+            node = node.children[char]
+        return bool(node.exist)
+
+    def list(self, lexical: bool = False):
+        """返回所有关键词列表"""
+        keywords = []
+
+        def pre_order(current_node, word):
+            word.append(current_node.name)
+            if current_node.exist:
+                keywords.append(''.join(word))
+            children = current_node.children.items()
+            if lexical:
+                children = sorted(children, key=lambda x: x[0])
+            for _, node in children:
+                pre_order(node, word)
+            word.pop()
+
+        pre_order(self.root, [])
+        return keywords
+
+    def finalize(self):
+        """构建fail指针"""
+        queue = Queue()
+        queue.put(self.root)
+        # 对树进行层次遍历
+        while not queue.empty():
+            node = queue.get()
+            for char in node.children:
+                child = node.children[char]
+                f_node = node.fail
+                # 关键点！需要沿着fail指针向上追溯直至根节点
+                while f_node is not None:
+                    if char in f_node.children:
+                        # 如果该指针指向的节点的孩子中有该字符，则字符节点的fail指针需指向它
+                        f_child = f_node.children[char]
+                        child.fail = f_child
+                        # 同时将长度合并过来，以便最后输出
+                        if f_child.exist:
+                            child.exist.extend(f_child.exist)
+                        break
+                    f_node = f_node.fail
+                # 如果到根节点也没找到，则将fail指针指向根节点
+                if f_node is None:
+                    child.fail = self.root
+                queue.put(child)
+        self.finalized = True
+
+    def search_in(self, text: str) -> Dict[str, List[int]]:
+        """在一段文本中查找关键字及其开始位置（可能重复多个）"""
+        result = dict()
+        if not self.finalized:
+            self.finalize()
+        node = self.root
+        for i, char in enumerate(text):
+            matched = True
+            # 如果当前节点的孩子中找不到该字符
+            while char not in node.children:
+                # fail指针为None，说明走到了根节点，找不到匹配的
+                if node.fail is None:
+                    matched = False
+                    break
+                # 将fail指针指向的节点作为当前节点
+                node = node.fail
+            if matched:
+                # 找到匹配，将匹配到的孩子节点作为当前节点
+                node = node.children[char]
+                if node.exist:
+                    # 如果该节点存在多个长度，则输出多个关键词
+                    for length in node.exist:
+                        start = i - length + 1
+                        word = text[start: start + length]
+                        if word not in result:
+                            result[word] = []
+                        result[word].append(start)
+        return result

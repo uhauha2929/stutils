@@ -3,37 +3,14 @@
 # @Email   : ck143302@gmail.com
 import warnings
 import re
-from pathlib import Path
-from typing import Union, List, Tuple, Set, Callable
-import os
-import gzip
+from typing import Union, List, Tuple, Callable
 import string
 
-
-MODULE_PATH = os.path.dirname(__file__)
-
-
-def load_stopwords(path: str = None) -> Set[str]:
-    """从文件中加载停用词，每行一个单词"""
-    if path is None:
-        path = Path(MODULE_PATH) / Path('static\\stopwords.txt.gz')
-    else:
-        path = Path(path)
-    stopwords = set()
-    if path.suffix == '.txt':
-        f = open(path, 'rt', encoding='utf8')
-    else:
-        f = gzip.open(path, 'rt', encoding='utf8')
-    for line in f:
-        line = line.strip()
-        if len(line) > 0:
-            stopwords.add(line.lower())
-    f.close()
-    return stopwords
+from ..static import load_stopwords
 
 
 def get_tokenized_words(docs: List[str],
-                        tokenizer: Callable = lambda s: s.split(),
+                        tokenizer: Callable[[str], List[str]] = lambda s: s.split(),
                         word_min_len: int = 2,
                         stopwords: str = None):
     """文档分词并去除停用词"""

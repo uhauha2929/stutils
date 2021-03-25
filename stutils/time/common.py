@@ -6,17 +6,7 @@ from typing import Tuple, Callable
 
 
 class Timer(object):
-    """计时器
-    timer = Timer()
-    timer.start()
-    do something...
-    timer.stop()
-    print(timer.elapsed)
-    或者
-    with Timer() as t:
-        do something...
-    print(t.elapsed)
-    """
+    """计时器"""
 
     def __init__(self, func=time.perf_counter):
         self.elapsed = 0.0

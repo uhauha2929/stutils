@@ -7,28 +7,16 @@ import time
 
 
 class Properties(object):
+
     """properties配置文件解析工具类
-    文件中每一行键值对之间用=、:、空格或者tab键分割
-    在空格和:、=不相邻的情况下，第一次出现的作为分隔符，否则还是以第一次出现的:、=分割
-    propertyName=propertyValue
-    propertyName:propertyValue
-    propertyName    propertyValue
-    propertyName = propertyValue
-    键值对之间的空格被忽略；每一行开头结尾的空格被忽略；
-    以#或!开头的行视为注释，被忽略；空行也被忽略
-    # comment
-    ! comment
-    name=Stephen
-     name = Stephen
-    属性值可以跨多个行，行尾必须是反斜杠，换行后的\t、空格都会忽略
-    targetCities=\
-    Detroit,\
-    Chicago,\
-      Los Angeles!
-    等价于targetCities=Detroit,Chicago,Los Angeles!
-    换行符、回车符和制表符可以分别用字符\n、\r和\t插入
+
+    文件中每一行键值对之间用=或:或空格或tab键分割\n
+    在空格和:或=不相邻的情况下，第一次出现的作为分隔符，否则还是以第一次出现的:或=分割\n
+    键值对之间的空格被忽略；每一行开头结尾的空格被忽略\n
+    以#或!开头的行视为注释，被忽略；空行也被忽略\n
+    属性值可以跨多个行，行尾必须是反斜杠，换行后的tab和空格都会忽略\n
+    换行符、回车符和制表符可以分别用换行或反斜杠r或tab插入\n
     反斜杠和空格可以用反斜杠来转义，由于空格可以作为分割符，所以属性名中的空格必须要转义
-    path=c:\\docs\\doc1
     """
     _chars_map = {i: '\\' + j for i, j in zip(b'\\=: \t\n\r\v\f', '\\=: tnrvf')}
     _map_chars = {j: i for i, j in _chars_map.items()}

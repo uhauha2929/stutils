@@ -1,14 +1,49 @@
-包含了字符串、文本处理算法等等······
-### 安装
+### stutils
+String, text, file processing, and more.
+
+### Installation
 ```bash
 pip install git+https://github.com/uhauha2929/stutils
 ```
-### 测试
+### Package
+```shell
+../stutils
+│──file
+│  │──common.py
+│  └──property.py
+│──static
+│  │──20k.txt.gz
+│  └──stopwords.txt.gz
+│──string
+│  │──anagram.py
+│  │──arithmetic.py
+│  │──common.py
+│  │──conversion.py
+│  │──fuzzy.py
+│  │──match.py
+│  │──metric.py
+│  │──palindrome.py
+│  │──prefix.py
+│  │──segment.py
+│  │──suffix.py
+│  │──transform.py
+│  └──validation.py
+│──text
+│  │──common.py
+│  │──rank.py
+│  └──tfidf.py
+└──time
+   └──common.py
+5 directories, 21 files
 ```
->>> import stutils
->>> stutils.file.basic.print_tree('.')
->>> stutils.string.match.z_search('asdfasdf', 'sd')
->>> stutils.string.metric.jaro_winkler_similarity('asdf', 'dfasd')
->>> tree = stutils.string.trie.SuffixTree('eeweewe')
->>> tree.find('wee')
+### Uasage
+```python
+import stutils as st
+st.file.print_tree('.')
+st.string.rand_string(5)
+st.string.match.sunday_search('sadf', 'ad')
+st.string.metric.min_edit_dist('asdf', 'fads')
+st.string.suffix.SuffixTree('asdf').find('sd')
+st.string.segment.Splitter().split('AllthatIneed...')
+st.string.fuzzy.BKTree().query('fack')
 ```

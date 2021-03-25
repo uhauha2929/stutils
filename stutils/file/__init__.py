@@ -1,2 +1,2 @@
-from . import basic
-from . import prop
+from .common import *
+from . import property

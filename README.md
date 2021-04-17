@@ -1,5 +1,5 @@
-### stutils
-String, text, file processing, and more.
+## stutils
+Provide and organize some related string, text and file processing methods for personal learning and use.
 
 ### Installation
 ```bash
@@ -36,7 +36,7 @@ pip install git+https://github.com/uhauha2929/stutils
    └──common.py
 5 directories, 21 files
 ```
-### Uasage
+### Usage
 ```python
 import stutils as st
 st.file.print_tree('.')
@@ -45,5 +45,5 @@ st.string.match.sunday_search('sadf', 'ad')
 st.string.metric.min_edit_dist('asdf', 'fads')
 st.string.suffix.SuffixTree('asdf').find('sd')
 st.string.segment.Splitter().split('AllthatIneed...')
-st.string.fuzzy.BKTree().query('fack')
+st.string.fuzzy.Corrector().correct('flack')
 ```

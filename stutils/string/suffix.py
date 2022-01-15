@@ -248,21 +248,23 @@ class SuffixTree(object):
         从root到该节点所经历过的字符串就是最长重复子串
         注意：递归太深栈会溢出
         """
-        def dfs(node, height):
-            # 返回最深内部节点至根节点的长度以及该节点的末尾位置
-            max_len = height
-            max_end = node.end
+        # 返回最深内部节点至根节点的长度以及该节点的末尾位置
+        max_len = 0
+        max_end = 0
+
+        def dfs(node, height, end):
+            nonlocal max_len, max_end
+            if height > max_len:
+                max_len = height
+                max_end = end
+
             for child in node.children.values():
                 # 若该节点为内部节点
                 if child.end >= 0:
-                    h, e = dfs(child, height + self.edge_length(child))
-                    if h > max_len:
-                        max_len = h
-                        max_end = e
-            return max_len, max_end
+                    dfs(child, height + self.edge_length(child), child.end)
 
-        length, end = dfs(self.root, 0)
-        return self.text[end - length + 1: end + 1]
+        dfs(self.root, 0, 0)
+        return self.text[max_end - max_len + 1: max_end + 1]
 
     def get_suffix_array(self):
         """返回后缀数组"""

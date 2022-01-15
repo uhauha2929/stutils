@@ -260,6 +260,16 @@ def print_tree(directory: Union[str, Path], depth: int = -1,
         print("The directory is too deep to show.")
 
 
+def file_iterator(path: Union[str, Path]):
+    """递归迭代目录中的所有文件"""
+    path = Path(path)
+    if path.is_file():
+        yield path
+    else:
+        for sub_path in path.iterdir():
+            yield from list_files(sub_path)
+
+
 def list_files(directory: Union[str, Path],
                pattern: Union[Callable[[str], bool], str] = None,
                seconds: int = None,

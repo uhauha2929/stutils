@@ -11,3 +11,4 @@ from . import suffix
 from . import anagram
 from . import segment
 from . import fuzzy
+from . import notation

@@ -55,10 +55,6 @@ class BKTree(object):
         self.dist_fn = dist_fn
         self.save_dir = save_dir or os.path.expanduser('~')
         self.root = None
-        try:
-            self.load(save_dir + '/bk.json')
-        except FileNotFoundError:
-            pass
 
     def build(self,
               word_freq_file: str = None,
@@ -87,9 +83,9 @@ class BKTree(object):
         with open(save_dir + '/bk.json', 'wt') as f:
             json.dump(self.root, f)
 
-    def load(self, path: str):
+    def load(self, directory: str = None):
         """加载自定义的json文件"""
-        path = Path(path)
+        path = Path(directory or self.save_dir) / "bk.json"
         if not path.exists() or path.suffix != '.json':
             raise FileNotFoundError('Tree json file not found.')
         with open(path, 'rt', encoding='utf8') as f:
@@ -104,7 +100,7 @@ class BKTree(object):
         :return: 匹配的单词列表
         """
         if self.root is None:
-            self.build()
+            raise RuntimeError("Please load or build dictionary first.")
 
         candidates = []
 

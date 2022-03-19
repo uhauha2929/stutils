@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(name='stutils',
                  version='0.0.1',
-                 description='string and text',
+                 description='String&Text',
                  url='https://github.com/uhauha2929/stutils',
                  author='uhauha2929',
                  author_email='ck143302@outlook.com',

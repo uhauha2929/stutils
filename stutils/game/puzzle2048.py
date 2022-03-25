@@ -100,7 +100,8 @@ class Grid(object):
         self.move_left()
         self.cells = np.rot90(self.cells, 1)
 
-if __name__ == '__main__':
+
+def run():
     grid = Grid()
     grid.show()
     while (True):
@@ -126,3 +127,6 @@ if __name__ == '__main__':
         if grid.is_over:
             print('Game over!!!')
             break
+
+if __name__ == '__main__':
+    run()

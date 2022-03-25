@@ -1,2 +1,2 @@
-from . import sample
 from .common import *
+from . import map

@@ -1,5 +1,4 @@
 import gzip
-import json
 from pathlib import Path
 from typing import List, Set
 import os

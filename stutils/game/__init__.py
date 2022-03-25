@@ -1,0 +1,1 @@
+from . import puzzle2048

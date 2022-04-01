@@ -63,3 +63,8 @@ def validate_brackets(text: str) -> bool:
         elif char in pairs.values():
             stack.append(char)
     return not stack
+
+
+def is_strict_password(password):
+    """是否是6-16位的严格密码"""
+    return re.match(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[\s\S]{6,16}$', password) is not None

@@ -285,3 +285,45 @@ class AhoCorasick(object):
                             result[word] = []
                         result[word].append(start)
         return result
+
+
+def min_cover_substring(s: str, t: str) -> str:
+    """最小覆盖子串
+    
+    对于t中重复字符寻找的子字符串中该字符数量必须不少于t中该字符数量
+    如果s中存在这样的子串保证它是唯一的
+    """
+    if len(s) == 0 or len(t) == 0 or len(s) < len(t):
+        return ''
+    t_freq = {}
+    for c in t:
+        if c not in t_freq:
+            t_freq[c] = 0
+        t_freq[c] = t_freq[c] + 1
+    dist = len(t)
+    min_len = len(s) + 1
+    begin = 0
+    left = 0
+    right = 0
+    while right < len(s):
+        if s[right] not in t_freq:
+            right += 1
+            continue
+        if t_freq[s[right]] > 0:
+            dist -= 1
+        t_freq[s[right]] = t_freq[s[right]] - 1
+        right += 1
+        while dist == 0:
+            if right - left < min_len:
+                min_len = right - left
+                begin = left
+            if s[left] not in t_freq:
+                left += 1
+                continue
+            if t_freq[s[left]] == 0:
+                dist += 1
+            t_freq[s[left]] = t_freq[s[left]] + 1
+            left += 1
+    if min_len == len(s) + 1: 
+        return ''
+    return s[begin: begin + min_len]

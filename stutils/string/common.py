@@ -26,11 +26,6 @@ def rand_password(length: int) -> str:
     return ''.join(password)
 
 
-def is_strict_password(password):
-    """是否是6-16位的严格密码"""
-    return re.match(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[\s\S]{6,16}$', password) is not None
-
-
 def rand_string(length: int, exclude='') -> str:
     """返回指定长度的随机字符串"""
     chars = string.printable
@@ -50,3 +45,17 @@ def case_func_of(word: str) -> Callable[[str], str]:
             str.lower if word.islower() else
             str.title if word.istitle() else
             str)
+
+
+def length_of_longest_substring(s: str) -> int:
+    """不含有重复字符的最长子串的长度"""
+    char_pos = dict()
+    max_len = 0
+    last_pos = 0
+    for i in range(0, len(s)):
+        if s[i] in char_pos:
+            last_pos = max(char_pos[s[i]],last_pos)
+        max_len = max(max_len,i - last_pos + 1)
+        char_pos[s[i]] = i + 1
+    
+    return max_len

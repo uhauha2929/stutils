@@ -108,3 +108,41 @@ def remove_punctuation(text: str):
     """去除句子中的标点符号"""
     translator = str.maketrans('', '', string.punctuation)
     return text.translate(translator)
+
+
+def full_justify(words: List[str], max_width: int) -> List[str]:
+    """重新排版单词, 使其成为每行恰好有maxWidth个字符, 且左右两端对齐的文本"""
+    lines = []
+    words_length = 0
+    start = 0
+    end = 0
+    while end < len(words):
+        if len(words[end]) > max_width:
+            raise ValueError('max width is too short')
+        words_length += len(words[end])
+        if words_length + (end - start) > max_width:
+            words_length -= len(words[end])
+            if end - start == 1:
+                lines.append(words[start] + ' ' * (max_width - len(words[start])))
+            else:
+                num_spaces = max_width - words_length
+                avg_spaces = num_spaces // (end - start - 1)
+                extra_spaces = num_spaces % (end -start - 1)
+                line = []
+                for i in range(start, end - 1):
+                    line.append(words[i])
+                    if i <= start + extra_spaces - 1:
+                        line.append(' ' * (avg_spaces + 1))
+                    else:
+                        line.append(' ' * avg_spaces)
+                line.append(words[end - 1])
+                lines.append(''.join(line))
+            start = end
+            words_length = 0
+        else:
+            end += 1
+    
+    if end >= start:
+        lines.append(' '.join(words[start: end]) + ' ' * (max_width - words_length - (end - start - 1)))
+
+    return lines

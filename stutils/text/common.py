@@ -33,7 +33,7 @@ def ngrams(text: Union[str, List[str]], n: int = 2):
     if len(text) < n:
         warnings.warn(f'The string length must be greater than {n - 1}.')
         return []
-    return [tuple(text[i: i + n]) for i in range(len(text) - 1)]
+    return [tuple(text[i: i + n]) for i in range(len(text) - n + 1)]
 
 
 def bigrams(text: Union[str, List[str]]) -> List[Tuple[str, str]]:

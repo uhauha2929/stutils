@@ -30,8 +30,6 @@ def bleu(references: List[List[str]], candidate: List[str], n: int=2) -> float:
     clipped_counts = {
         ngram: min(count, max_counts[ngram]) for ngram, count in counts.items()
     }
-    print(clipped_counts)
-    print(counts)
     numerator = sum(clipped_counts.values())
     denominator = max(1, sum(counts.values()))
     return numerator/denominator

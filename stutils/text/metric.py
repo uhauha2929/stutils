@@ -1,18 +1,35 @@
 
 from collections import Counter
+import math
 from typing import List
 
 from .common import ngrams
 
 
-def bleu(references: List[List[str]], candidate: List[str], n: int=2) -> float:
+def bleu(references: List[List[str]], candidate: List[str], n: int=4, weights: List[float]=None) -> float:
     """计算机器翻译的bleu评价指标
-
+    
     :param references: 参考句子（已分词）集合
     :param candidate: 候选句子（已分词）
-    :param n: 连续单词个数(ngram)
+    :param n: 连续单词个数(ngram)，默认为4
+    :param weights: ngram的权重，默认为均匀分布
     :return: bleu值
     """
+    if weights is None:
+        weights = [1 / n] * n
+    
+    if len(weights) != n:
+        raise ValueError("The number of weights must be the same as N.")
+
+    lc = len(candidate)
+    lr = min(map(len, references))
+    bp = math.exp(1 - lr/lc) if lc <= lr else 1
+    bleu_ngrams = [math.log(bleu_n(references, candidate, i)) for i in range(1, n+1)]
+    return bp * math.exp(sum(i * j for i, j in zip(bleu_ngrams, weights)))
+
+
+def bleu_n(references: List[List[str]], candidate: List[str], n: int=2) -> float:
+    """计算bleu的ngram精确率"""
     # 统计候选句的ngram个数
     counts = Counter(ngrams(candidate, n)) if len(candidate) >= n else Counter()
 
